@@ -1,0 +1,90 @@
+name: CI / CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test_build:
+    name: 테스트 및 빌드
+    runs-on: ubuntu-latest
+    steps:
+      - name: ✅ 리포지토리 체크아웃
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Node.js 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm # package-lock.json 기반으로 npm 캐시
+
+      - name: 📦 의존성 설치
+        run: npm ci --no-audit --no-fund
+
+      - name: 🧪 ESLint 기반 테스트(품질 점검)
+        run: npm run lint
+
+      - name: 🏗️ 정적 빌드 검증
+        run: npm run build
+
+  docker_publish:
+    name: Docker 이미지 빌드·푸시(GHCR)
+    runs-on: ubuntu-latest
+    needs: test_build
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/apilog
+    steps:
+      - name: ✅ 리포지토리 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 🔑 GHCR 로그인
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏗️ + 🚀 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
+          context: .
+          file: ./Dockerfile
+
+  deploy:
+    name: 원격 서버 배포
+    runs-on: ubuntu-latest
+    needs: docker_publish
+    steps:
+      - name: 🚀 SSH로 서버 접속 및 롤링 업데이트
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -euo pipefail
+            IMAGE="ghcr.io/${{ github.repository_owner }}/apilog:latest"
+
+            echo "[1/4] GHCR 로그인"
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.repository_owner }}" --password-stdin
+
+            echo "[2/4] 최신 이미지 풀"
+            docker pull "$IMAGE"
+
+            echo "[3/4] compose 디렉터리로 이동"
+            cd "${{ secrets.DEPLOY_WORKDIR }}"
+
+            echo "[4/4] 애플리케이션 서비스 롤링 재시작"
+            docker compose up -d --pull always app
+
+            echo "[+] 불필요한 로컬 이미지 정리"
+            docker image prune -f >/dev/null
