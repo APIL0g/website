@@ -1,5 +1,7 @@
 # website
 
+[한국어 문서 보기](README.ko.md)
+
 This is the Apilog marketing site built with Next.js.
 
 ## Local development
