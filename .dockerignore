@@ -1,0 +1,19 @@
+# dependencies
+node_modules
+pnpm-lock.yaml
+
+# build artifacts
+.next
+out
+build
+
+# git
+.git
+.gitignore
+
+# env/config
+.env*
+
+# certbot shared data (avoid permission issues / unnecessary context)
+docker/letsencrypt
+docker/certbot/www
