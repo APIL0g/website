@@ -11,7 +11,7 @@ jobs:
     name: Docker 이미지 빌드·푸시(GHCR)
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/apilog
+      IMAGE_NAME: ghcr.io/${{ toLower(github.repository_owner) }}/apilog
     steps:
       - name: ✅ 리포지토리 체크아웃
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -euo pipefail
-            IMAGE="ghcr.io/${{ github.repository_owner }}/apilog:latest"
+            IMAGE="ghcr.io/${{ toLower(github.repository_owner) }}/apilog:latest"
 
             echo "[1/4] GHCR 로그인"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.repository_owner }}" --password-stdin
