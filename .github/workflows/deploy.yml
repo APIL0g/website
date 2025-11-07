@@ -10,11 +10,17 @@ jobs:
   docker_publish:
     name: Docker 이미지 빌드·푸시(GHCR)
     runs-on: ubuntu-latest
-    env:
-      IMAGE_NAME: ghcr.io/${{ toLower(github.repository_owner) }}/apilog
+    outputs:
+      image_name: ${{ steps.image_ref.outputs.value }}
     steps:
       - name: ✅ 리포지토리 체크아웃
         uses: actions/checkout@v4
+
+      - name: 📛 이미지 이름 설정(소문자)
+        id: image_ref
+        run: |
+          OWNER_LC=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          echo "value=ghcr.io/${OWNER_LC}/apilog" >> "$GITHUB_OUTPUT"
 
       - name: 🔧 Buildx 설정
         uses: docker/setup-buildx-action@v3
@@ -31,10 +37,10 @@ jobs:
         with:
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
+            ${{ steps.image_ref.outputs.value }}:latest
+            ${{ steps.image_ref.outputs.value }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ steps.image_ref.outputs.value }}:buildcache
+          cache-to: type=registry,ref=${{ steps.image_ref.outputs.value }}:buildcache,mode=max
           context: .
           file: ./Dockerfile
 
@@ -52,7 +58,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -euo pipefail
-            IMAGE="ghcr.io/${{ toLower(github.repository_owner) }}/apilog:latest"
+            IMAGE="${{ needs.docker_publish.outputs.image_name }}:latest"
 
             echo "[1/4] GHCR 로그인"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.repository_owner }}" --password-stdin
