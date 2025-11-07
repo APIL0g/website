@@ -5,12 +5,17 @@ CERT_DOMAIN="apilog.kr"
 CERT_DIR="/etc/letsencrypt/live/${CERT_DOMAIN}"
 mkdir -p "$CERT_DIR"
 
+if ! command -v openssl >/dev/null 2>&1; then
+  echo "[nginx] Installing openssl..."
+  apk add --no-cache openssl
+fi
+
 if [ ! -f "$CERT_DIR/fullchain.pem" ] || [ ! -f "$CERT_DIR/privkey.pem" ]; then
   echo "[nginx] No certificate found for ${CERT_DOMAIN}, generating a temporary self-signed cert."
   openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
     -subj "/CN=${CERT_DOMAIN}" \
     -keyout "$CERT_DIR/privkey.pem" \
-    -out "$CERT_DIR/fullchain.pem" >/dev/null 2>&1
+    -out "$CERT_DIR/fullchain.pem"
 fi
 
 watch_certificates() {
