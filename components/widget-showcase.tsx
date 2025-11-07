@@ -21,7 +21,7 @@ export function WidgetShowcase() {
       conversion: "Conversion",
       conversionValue: "12.5%",
     },
-    ko: {
+    kr: {
       title: "당신의 대시보드, 당신의 방식",
       subtitle: "유연한 포틀릿 시스템으로 맞춤형 대시보드 구축",
       description:

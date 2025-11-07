@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Github, Globe, Menu } from "lucide-react"
+import { Github, Languages , Menu } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useLanguage } from "@/lib/language-context"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -18,13 +18,18 @@ export function Header() {
       github: "GitHub",
       download: "Download",
     },
-    ko: {
+    kr: {
       features: "기능",
       docs: "문서",
       community: "커뮤니티",
       github: "GitHub",
       download: "다운로드",
     },
+  }
+
+  const languageLabels: Record<"en" | "kr", string> = {
+    en: "English",
+    kr: "한국어",
   }
 
   const t = translations[language]
@@ -60,13 +65,14 @@ export function Header() {
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Globe className="h-5 w-5" />
+              <Button variant="ghost" size="sm" className="gap-2" aria-label="Select language">
+                <Languages className="h-5 w-5" />
+                <span className="text-sm font-medium">{languageLabels[language]}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setLanguage("en")}>English</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage("ko")}>한국어</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage("kr")}>한국어</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button asChild className="hidden sm:inline-flex">

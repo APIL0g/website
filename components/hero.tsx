@@ -21,7 +21,7 @@ export function Hero() {
       selfHosted: "Self-Hosted",
       privacy: "Privacy First",
     },
-    ko: {
+    kr: {
       title: "당신의 방식대로",
       titleHighlight: "작동하는 분석 도구",
       subtitle:
@@ -36,7 +36,7 @@ export function Hero() {
 
   const t = translations[language]
 
-  const demoUrl = "https://apilog.kr:8080"
+  const demoUrl = "http://52.79.131.83:8080"
 
   return (
     <section className="pt-32 pb-20 px-4">

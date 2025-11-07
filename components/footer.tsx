@@ -24,7 +24,7 @@ export function Footer() {
       license: "MIT License",
       rights: "All rights reserved.",
     },
-    ko: {
+    kr: {
       tagline: "프라이버시를 존중하는 오픈소스 분석",
       product: "제품",
       features: "기능",

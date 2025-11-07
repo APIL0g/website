@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 
-type Language = "en" | "ko"
+type Language = "en" | "kr"
 
 interface LanguageContextType {
   language: Language
@@ -17,7 +17,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // Load language from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem("apilog-language")
-    if (saved === "en" || saved === "ko") {
+    if (saved === "en" || saved === "kr") {
       setLanguageState(saved)
     }
   }, [])

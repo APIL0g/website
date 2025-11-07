@@ -16,7 +16,7 @@ export function CTA() {
       readDocs: "Read Documentation",
       viewGithub: "View on GitHub",
     },
-    ko: {
+    kr: {
       title: "분석을 제어할 준비가 되셨나요?",
       subtitle: "프라이버시 우선 분석을 위해 Apilog를 신뢰하는 수천 명의 개발자와 함께하세요.",
       getStarted: "시작하기",

@@ -28,7 +28,7 @@ export function HowItWorks() {
         },
       ],
     },
-    ko: {
+    kr: {
       title: "몇 분 안에 시작하세요",
       steps: [
         {

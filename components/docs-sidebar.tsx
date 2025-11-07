@@ -22,7 +22,7 @@ export function DocsSidebar() {
       features: "Features",
       troubleshooting: "Troubleshooting",
     },
-    ko: {
+    kr: {
       quickStart: "빠른 시작",
       configuration: "설정",
       features: "기능",

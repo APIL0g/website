@@ -124,7 +124,7 @@ export function CommunityContent() {
         button: "View on GitHub",
       },
     },
-    ko: {
+    kr: {
       title: "Apilog 커뮤니티에 참여하세요",
       subtitle: "프라이버시 중심 분석 도구의 미래를 함께 만들어가요",
       contribute: {

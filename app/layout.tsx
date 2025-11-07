@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
+import Script from "next/script"
 import { LanguageProvider } from "@/lib/language-context"
 
 const _inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
@@ -32,6 +33,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script
+          src="http://52.79.131.83:8080/apilog/embed.js"
+          data-site-id="main"
+          data-ingest-url="http://52.79.131.83:8080/api/ingest/events"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body className="font-sans antialiased">
         <LanguageProvider>{children}</LanguageProvider>
       </body>

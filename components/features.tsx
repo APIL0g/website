@@ -44,7 +44,7 @@ export function Features() {
         },
       ],
     },
-    ko: {
+    kr: {
       title: "프라이버시와 제어를 위해 설계됨",
       subtitle: "사용자의 프라이버시를 침해하지 않으면서 이해하는 데 필요한 모든 것",
       features: [
