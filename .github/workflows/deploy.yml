@@ -89,10 +89,10 @@ jobs:
           script: |
             set -euo pipefail
             IMAGE="${{ needs.docker_publish.outputs.image_name }}:latest"
-            WORKDIR="${DEPLOY_WORKDIR:-}"
-            COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-}"
-            SERVICE="${DEPLOY_SERVICE:-app}"
-            ARCHIVE="${DEPLOY_ARCHIVE:-deploy.tar.gz}"
+          WORKDIR="${DEPLOY_WORKDIR:-}"
+          COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-}"
+          SERVICE="${DEPLOY_SERVICE:-app}"
+          ARCHIVE="${DEPLOY_ARCHIVE:-deploy.tar.gz}"
 
             echo "[1/5] GHCR login"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.repository_owner }}" --password-stdin
@@ -100,13 +100,20 @@ jobs:
             echo "[2/5] Pull latest image ($IMAGE)"
             docker pull "$IMAGE"
 
-            if [ -n "$WORKDIR" ]; then
-              echo "[3/5] Switching to $WORKDIR"
-              mkdir -p "$WORKDIR"
-              cd "$WORKDIR"
+          if [ -z "$WORKDIR" ]; then
+            DEFAULT_WORKDIR="$HOME/website"
+            if [ -d "$DEFAULT_WORKDIR" ]; then
+              echo "[3/5] DEPLOY_WORKDIR not set. Falling back to $DEFAULT_WORKDIR"
+              WORKDIR="$DEFAULT_WORKDIR"
             else
-              echo "[3/5] DEPLOY_WORKDIR is empty. Staying in $HOME"
+              echo "::error::DEPLOY_WORKDIR secret is empty and default path '$DEFAULT_WORKDIR' does not exist." >&2
+              exit 1
             fi
+          fi
+
+          echo "[3/5] Switching to $WORKDIR"
+          mkdir -p "$WORKDIR"
+          cd "$WORKDIR"
 
             if [ -f "$ARCHIVE" ]; then
               echo "[4/5] Unpacking $ARCHIVE"
