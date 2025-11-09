@@ -93,17 +93,19 @@ jobs:
             COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-}"
             SERVICE="${DEPLOY_SERVICE:-}"
             ARCHIVE="${DEPLOY_ARCHIVE:-deploy.tar.gz}"
+            CERT_EMAIL="${DEPLOY_CERTBOT_EMAIL:-}"
+            CERT_DOMAINS_RAW="${DEPLOY_CERTBOT_DOMAINS:-}"
 
-            echo "[1/5] GHCR login"
+            echo "[1/6] GHCR login"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.repository_owner }}" --password-stdin
 
-            echo "[2/5] Pull latest image ($IMAGE)"
+            echo "[2/6] Pull latest image ($IMAGE)"
             docker pull "$IMAGE"
 
             if [ -z "$WORKDIR" ]; then
               DEFAULT_WORKDIR="$HOME/website"
               if [ -d "$DEFAULT_WORKDIR" ]; then
-                echo "[3/5] DEPLOY_WORKDIR not set. Falling back to $DEFAULT_WORKDIR"
+                echo "[3/6] DEPLOY_WORKDIR not set. Falling back to $DEFAULT_WORKDIR"
                 WORKDIR="$DEFAULT_WORKDIR"
               else
                 echo "::error::DEPLOY_WORKDIR secret is empty and default path '$DEFAULT_WORKDIR' does not exist." >&2
@@ -111,12 +113,12 @@ jobs:
               fi
             fi
 
-            echo "[3/5] Switching to $WORKDIR"
+            echo "[3/6] Switching to $WORKDIR"
             mkdir -p "$WORKDIR"
             cd "$WORKDIR"
 
             if [ -f "$ARCHIVE" ]; then
-              echo "[4/5] Unpacking $ARCHIVE"
+              echo "[4/6] Unpacking $ARCHIVE"
               tar -xzf "$ARCHIVE"
               rm -f "$ARCHIVE"
             else
@@ -127,6 +129,38 @@ jobs:
               COMPOSE_FILE="docker-compose.yml"
             fi
 
+            if [ -n "$CERT_EMAIL" ] && [ -n "$CERT_DOMAINS_RAW" ]; then
+              CLEAN_DOMAINS=$(printf '%s\n' "$CERT_DOMAINS_RAW" | tr ',;' ' ')
+              # shellcheck disable=SC2086
+              set -- $CLEAN_DOMAINS
+              if [ "$#" -gt 0 ]; then
+                PRIMARY_DOMAIN="$1"
+                CERT_PATH="docker/letsencrypt/live/${PRIMARY_DOMAIN}/fullchain.pem"
+                if [ ! -f "$CERT_PATH" ]; then
+                  echo "[5/6] Issuing initial certificates for: $CLEAN_DOMAINS"
+                  docker compose -f "$COMPOSE_FILE" up -d app nginx
+                  DOMAIN_FLAGS=""
+                  for domain in $CLEAN_DOMAINS; do
+                    [ -z "$domain" ] && continue
+                    DOMAIN_FLAGS="$DOMAIN_FLAGS -d $domain"
+                  done
+                  # shellcheck disable=SC2086
+                  docker compose -f "$COMPOSE_FILE" run --rm certbot certonly \
+                    --webroot -w /var/www/certbot \
+                    --email "$CERT_EMAIL" \
+                    --agree-tos --no-eff-email \
+                    $DOMAIN_FLAGS
+                  docker compose -f "$COMPOSE_FILE" exec nginx nginx -s reload || true
+                else
+                  echo "[5/6] Existing certificate found at $CERT_PATH"
+                fi
+              else
+                echo "[5/6] CERTBOT_DOMAINS resolved to empty list. Skipping issuance."
+              fi
+            else
+              echo "[5/6] Skipping certificate issuance (CERTBOT secrets not set)"
+            fi
+
             if [ ! -f "$COMPOSE_FILE" ]; then
               echo "::error::Compose file '$COMPOSE_FILE' not found in $(pwd)" >&2
               ls -a
@@ -134,10 +168,10 @@ jobs:
             fi
 
             if [ -z "$SERVICE" ]; then
-              echo "[5/5] Rolling restart (services=all, compose=$COMPOSE_FILE)"
+              echo "[6/6] Rolling restart (services=all, compose=$COMPOSE_FILE)"
               docker compose -f "$COMPOSE_FILE" up -d --pull always
             else
-              echo "[5/5] Rolling restart (service list=$SERVICE, compose=$COMPOSE_FILE)"
+              echo "[6/6] Rolling restart (service list=$SERVICE, compose=$COMPOSE_FILE)"
               docker compose -f "$COMPOSE_FILE" up -d --pull always $SERVICE
             fi
 
@@ -148,4 +182,6 @@ jobs:
           DEPLOY_COMPOSE_FILE: ${{ secrets.DEPLOY_COMPOSE_FILE }}
           DEPLOY_SERVICE: ${{ secrets.DEPLOY_SERVICE }}
           DEPLOY_ARCHIVE: deploy.tar.gz
+          DEPLOY_CERTBOT_EMAIL: ${{ secrets.DEPLOY_CERTBOT_EMAIL }}
+          DEPLOY_CERTBOT_DOMAINS: ${{ secrets.DEPLOY_CERTBOT_DOMAINS }}
 
