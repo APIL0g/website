@@ -159,7 +159,7 @@ jobs:
                     DOMAIN_FLAGS="$DOMAIN_FLAGS -d $domain"
                   done
                   # shellcheck disable=SC2086
-                  docker compose -f "$COMPOSE_FILE" run --rm certbot certonly \
+                  docker compose -f "$COMPOSE_FILE" run --rm certbot run \
                     --webroot -w /var/www/certbot \
                     --email "$CERT_EMAIL" \
                     --agree-tos --no-eff-email \
