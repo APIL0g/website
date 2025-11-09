@@ -86,6 +86,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          envs: DEPLOY_WORKDIR,DEPLOY_COMPOSE_FILE,DEPLOY_SERVICE,DEPLOY_ARCHIVE,DEPLOY_CERTBOT_EMAIL,DEPLOY_CERTBOT_DOMAINS
           script: |
             set -euo pipefail
             IMAGE="${{ needs.docker_publish.outputs.image_name }}:latest"
