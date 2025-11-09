@@ -73,8 +73,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           source: ${{ steps.bundle.outputs.path }}
-          target: "~"
-
+          target: ${{ secrets.DEPLOY_BUNDLE_DIR }}
       - name: Remove local bundle
         if: steps.bundle.outputs.path != ''
         run: rm -f "${{ steps.bundle.outputs.path }}"
@@ -86,7 +85,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: DEPLOY_WORKDIR,DEPLOY_COMPOSE_FILE,DEPLOY_SERVICE,DEPLOY_ARCHIVE,DEPLOY_CERTBOT_EMAIL,DEPLOY_CERTBOT_DOMAINS
+          envs: DEPLOY_WORKDIR,DEPLOY_COMPOSE_FILE,DEPLOY_SERVICE,DEPLOY_ARCHIVE,DEPLOY_BUNDLE_DIR,DEPLOY_CERTBOT_EMAIL,DEPLOY_CERTBOT_DOMAINS
           script: |
             set -euo pipefail
             IMAGE="${{ needs.docker_publish.outputs.image_name }}:latest"
@@ -94,6 +93,7 @@ jobs:
             COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-}"
             SERVICE="${DEPLOY_SERVICE:-}"
             ARCHIVE="${DEPLOY_ARCHIVE:-deploy.tar.gz}"
+            ARCHIVE_DIR="${DEPLOY_BUNDLE_DIR:-$HOME}"
             CERT_EMAIL="${DEPLOY_CERTBOT_EMAIL:-}"
             CERT_DOMAINS_RAW="${DEPLOY_CERTBOT_DOMAINS:-}"
 
@@ -118,9 +118,9 @@ jobs:
             mkdir -p "$WORKDIR"
             cd "$WORKDIR"
 
-            if [ ! -f "$ARCHIVE" ] && [ -f "$HOME/$ARCHIVE" ]; then
-              echo "[4/6] Moving archive from \$HOME to $(pwd)"
-              mv "$HOME/$ARCHIVE" .
+            if [ ! -f "$ARCHIVE" ] && [ -f "$ARCHIVE_DIR/$ARCHIVE" ]; then
+              echo "[4/6] Moving archive from $ARCHIVE_DIR to $(pwd)"
+              mv "$ARCHIVE_DIR/$ARCHIVE" .
             fi
 
             if [ -f "$ARCHIVE" ]; then
