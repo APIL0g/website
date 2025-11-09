@@ -56,18 +56,19 @@ jobs:
         id: bundle
         run: |
           set -euo pipefail
-          BUNDLE_PATH="${RUNNER_TEMP}/deploy.tar.gz"
+          BUNDLE_NAME="deploy.tar.gz"
+          BUNDLE_PATH="${GITHUB_WORKSPACE}/${BUNDLE_NAME}"
           tar \
+            --warning=no-file-changed \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='node_modules' \
             --exclude='.next' \
             --exclude='deploy.tar.gz' \
             -czf "$BUNDLE_PATH" \
-            -C "$GITHUB_WORKSPACE" \
             .
           ls -lh "$BUNDLE_PATH"
-          echo "path=$BUNDLE_PATH" >> "$GITHUB_OUTPUT"
+          echo "path=$BUNDLE_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Upload bundle to server
         uses: appleboy/scp-action@v0.1.7
