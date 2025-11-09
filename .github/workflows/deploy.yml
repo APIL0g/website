@@ -58,15 +58,10 @@ jobs:
           set -euo pipefail
           BUNDLE_NAME="deploy.tar.gz"
           BUNDLE_PATH="${GITHUB_WORKSPACE}/${BUNDLE_NAME}"
-          tar \
-            --warning=no-file-changed \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='node_modules' \
-            --exclude='.next' \
-            --exclude='deploy.tar.gz' \
-            -czf "$BUNDLE_PATH" \
-            .
+          git ls-files -z \
+            | tar --null \
+                  --files-from=- \
+                  -czf "$BUNDLE_PATH"
           ls -lh "$BUNDLE_PATH"
           echo "path=$BUNDLE_NAME" >> "$GITHUB_OUTPUT"
 
