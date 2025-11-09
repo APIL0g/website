@@ -91,7 +91,7 @@ jobs:
             IMAGE="${{ needs.docker_publish.outputs.image_name }}:latest"
             WORKDIR="${DEPLOY_WORKDIR:-}"
             COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-}"
-            SERVICE="${DEPLOY_SERVICE:-app}"
+            SERVICE="${DEPLOY_SERVICE:-}"
             ARCHIVE="${DEPLOY_ARCHIVE:-deploy.tar.gz}"
 
             echo "[1/5] GHCR login"
@@ -133,8 +133,13 @@ jobs:
               exit 1
             fi
 
-            echo "[5/5] Rolling restart (service=$SERVICE, compose=$COMPOSE_FILE)"
-            docker compose -f "$COMPOSE_FILE" up -d --pull always "$SERVICE"
+            if [ -z "$SERVICE" ]; then
+              echo "[5/5] Rolling restart (services=all, compose=$COMPOSE_FILE)"
+              docker compose -f "$COMPOSE_FILE" up -d --pull always
+            else
+              echo "[5/5] Rolling restart (service list=$SERVICE, compose=$COMPOSE_FILE)"
+              docker compose -f "$COMPOSE_FILE" up -d --pull always $SERVICE
+            fi
 
             echo "[+] Pruning dangling local images"
             docker image prune -f >/dev/null
