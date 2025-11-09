@@ -137,8 +137,21 @@ jobs:
               if [ "$#" -gt 0 ]; then
                 PRIMARY_DOMAIN="$1"
                 CERT_PATH="docker/letsencrypt/live/${PRIMARY_DOMAIN}/fullchain.pem"
-                if [ ! -f "$CERT_PATH" ]; then
-                  echo "[5/6] Issuing initial certificates for: $CLEAN_DOMAINS"
+                KEY_PATH="docker/letsencrypt/live/${PRIMARY_DOMAIN}/privkey.pem"
+                NEEDS_CERT=0
+                ISSUER=""
+                if [ ! -f "$CERT_PATH" ] || [ ! -f "$KEY_PATH" ]; then
+                  NEEDS_CERT=1
+                elif command -v openssl >/dev/null 2>&1; then
+                  ISSUER="$(openssl x509 -in "$CERT_PATH" -noout -issuer 2>/dev/null || true)"
+                  if echo "$ISSUER" | grep -qi "$PRIMARY_DOMAIN"; then
+                    echo "[5/6] Existing certificate appears self-signed (issuer=$ISSUER)"
+                    NEEDS_CERT=1
+                  fi
+                fi
+
+                if [ "$NEEDS_CERT" -eq 1 ]; then
+                  echo "[5/6] Issuing certificates for: $CLEAN_DOMAINS"
                   docker compose -f "$COMPOSE_FILE" up -d app nginx
                   DOMAIN_FLAGS=""
                   for domain in $CLEAN_DOMAINS; do
@@ -153,7 +166,14 @@ jobs:
                     $DOMAIN_FLAGS
                   docker compose -f "$COMPOSE_FILE" exec nginx nginx -s reload || true
                 else
-                  echo "[5/6] Existing certificate found at $CERT_PATH"
+                  if [ -z "$ISSUER" ] && command -v openssl >/dev/null 2>&1; then
+                    ISSUER="$(openssl x509 -in "$CERT_PATH" -noout -issuer 2>/dev/null || true)"
+                  fi
+                  if [ -n "$ISSUER" ]; then
+                    echo "[5/6] Valid certificate found at $CERT_PATH (issuer: $ISSUER)"
+                  else
+                    echo "[5/6] Valid certificate found at $CERT_PATH"
+                  fi
                 fi
               else
                 echo "[5/6] CERTBOT_DOMAINS resolved to empty list. Skipping issuance."
