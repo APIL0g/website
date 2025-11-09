@@ -73,7 +73,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           source: ${{ steps.bundle.outputs.path }}
-          target: ${{ secrets.DEPLOY_WORKDIR }}
+          target: "~"
 
       - name: Remove local bundle
         if: steps.bundle.outputs.path != ''
@@ -117,6 +117,11 @@ jobs:
             echo "[3/6] Switching to $WORKDIR"
             mkdir -p "$WORKDIR"
             cd "$WORKDIR"
+
+            if [ ! -f "$ARCHIVE" ] && [ -f "$HOME/$ARCHIVE" ]; then
+              echo "[4/6] Moving archive from \$HOME to $(pwd)"
+              mv "$HOME/$ARCHIVE" .
+            fi
 
             if [ -f "$ARCHIVE" ]; then
               echo "[4/6] Unpacking $ARCHIVE"
