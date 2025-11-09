@@ -85,54 +85,54 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -euo pipefail
+            IMAGE="${{ needs.docker_publish.outputs.image_name }}:latest"
+            WORKDIR="${DEPLOY_WORKDIR:-}"
+            COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-}"
+            SERVICE="${DEPLOY_SERVICE:-app}"
+            ARCHIVE="${DEPLOY_ARCHIVE:-deploy.tar.gz}"
+
+            echo "[1/5] GHCR login"
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.repository_owner }}" --password-stdin
+
+            echo "[2/5] Pull latest image ($IMAGE)"
+            docker pull "$IMAGE"
+
+            if [ -n "$WORKDIR" ]; then
+              echo "[3/5] Switching to $WORKDIR"
+              mkdir -p "$WORKDIR"
+              cd "$WORKDIR"
+            else
+              echo "[3/5] DEPLOY_WORKDIR is empty. Staying in $HOME"
+            fi
+
+            if [ -f "$ARCHIVE" ]; then
+              echo "[4/5] Unpacking $ARCHIVE"
+              tar -xzf "$ARCHIVE"
+              rm -f "$ARCHIVE"
+            else
+              echo "::warning::Deploy bundle '$ARCHIVE' not found. Skipping file sync"
+            fi
+
+            if [ -z "$COMPOSE_FILE" ]; then
+              COMPOSE_FILE="docker-compose.yml"
+            fi
+
+            if [ ! -f "$COMPOSE_FILE" ]; then
+              echo "::error::Compose file '$COMPOSE_FILE' not found in $(pwd)" >&2
+              ls -a
+              exit 1
+            fi
+
+            echo "[5/5] Rolling restart (service=$SERVICE, compose=$COMPOSE_FILE)"
+            docker compose -f "$COMPOSE_FILE" up -d --pull always "$SERVICE"
+
+            echo "[+] Pruning dangling local images"
+            docker image prune -f >/dev/null
         env:
           DEPLOY_WORKDIR: ${{ secrets.DEPLOY_WORKDIR }}
           DEPLOY_COMPOSE_FILE: ${{ secrets.DEPLOY_COMPOSE_FILE }}
           DEPLOY_SERVICE: ${{ secrets.DEPLOY_SERVICE }}
           DEPLOY_ARCHIVE: deploy.tar.gz
-        script: |
-          set -euo pipefail
-          IMAGE="${{ needs.docker_publish.outputs.image_name }}:latest"
-          WORKDIR="${DEPLOY_WORKDIR:-}"
-          COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-}"
-          SERVICE="${DEPLOY_SERVICE:-app}"
-          ARCHIVE="${DEPLOY_ARCHIVE:-deploy.tar.gz}"
-
-          echo "[1/5] GHCR login"
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.repository_owner }}" --password-stdin
-
-          echo "[2/5] Pull latest image ($IMAGE)"
-          docker pull "$IMAGE"
-
-          if [ -n "$WORKDIR" ]; then
-            echo "[3/5] Switching to $WORKDIR"
-            mkdir -p "$WORKDIR"
-            cd "$WORKDIR"
-          else
-            echo "[3/5] DEPLOY_WORKDIR is empty. Staying in $HOME"
-          fi
-
-          if [ -f "$ARCHIVE" ]; then
-            echo "[4/5] Unpacking $ARCHIVE"
-            tar -xzf "$ARCHIVE"
-            rm -f "$ARCHIVE"
-          else
-            echo "::warning::Deploy bundle '$ARCHIVE' not found. Skipping file sync"
-          fi
-
-          if [ -z "$COMPOSE_FILE" ]; then
-            COMPOSE_FILE="docker-compose.yml"
-          fi
-
-          if [ ! -f "$COMPOSE_FILE" ]; then
-            echo "::error::Compose file '$COMPOSE_FILE' not found in $(pwd)" >&2
-            ls -a
-            exit 1
-          fi
-
-          echo "[5/5] Rolling restart (service=$SERVICE, compose=$COMPOSE_FILE)"
-          docker compose -f "$COMPOSE_FILE" up -d --pull always "$SERVICE"
-
-          echo "[+] Pruning dangling local images"
-          docker image prune -f >/dev/null
 
