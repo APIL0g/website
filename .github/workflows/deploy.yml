@@ -160,7 +160,7 @@ jobs:
                   done
                   # shellcheck disable=SC2086
                   CERTBOT_ARGS="certbot certonly --webroot -w /var/www/certbot --email \"$CERT_EMAIL\" --agree-tos --no-eff-email $DOMAIN_FLAGS"
-                  docker compose -f "$COMPOSE_FILE" run --rm certbot sh -c "$CERTBOT_ARGS"
+                  docker compose -f "$COMPOSE_FILE" run --rm certbot -c "$CERTBOT_ARGS"
                   docker compose -f "$COMPOSE_FILE" exec nginx nginx -s reload || true
                 else
                   if [ -z "$ISSUER" ] && command -v openssl >/dev/null 2>&1; then
