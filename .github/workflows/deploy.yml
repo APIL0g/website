@@ -74,6 +74,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: ${{ steps.bundle.outputs.path }}
           target: ${{ secrets.DEPLOY_BUNDLE_DIR }}
+
       - name: Remove local bundle
         if: steps.bundle.outputs.path != ''
         run: rm -f "${{ steps.bundle.outputs.path }}"
@@ -205,6 +206,6 @@ jobs:
           DEPLOY_COMPOSE_FILE: ${{ secrets.DEPLOY_COMPOSE_FILE }}
           DEPLOY_SERVICE: ${{ secrets.DEPLOY_SERVICE }}
           DEPLOY_ARCHIVE: deploy.tar.gz
+          DEPLOY_BUNDLE_DIR: ${{ secrets.DEPLOY_BUNDLE_DIR }}
           DEPLOY_CERTBOT_EMAIL: ${{ secrets.DEPLOY_CERTBOT_EMAIL }}
           DEPLOY_CERTBOT_DOMAINS: ${{ secrets.DEPLOY_CERTBOT_DOMAINS }}
-
