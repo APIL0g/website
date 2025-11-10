@@ -136,9 +136,6 @@ jobs:
               COMPOSE_FILE="docker-compose.yml"
             fi
 
-            # -------------------------------
-            # [5/6] 인증서: 있으면 패스, 없으면 발급
-            # -------------------------------
             if [ -n "$CERT_EMAIL" ] && [ -n "$CERT_DOMAINS_RAW" ]; then
               CLEAN_DOMAINS=$(printf '%s\n' "$CERT_DOMAINS_RAW" | tr ',;' ' ')
               # shellcheck disable=SC2086
@@ -147,23 +144,39 @@ jobs:
                 PRIMARY_DOMAIN="$1"
                 CERT_PATH="docker/letsencrypt/live/${PRIMARY_DOMAIN}/fullchain.pem"
                 KEY_PATH="docker/letsencrypt/live/${PRIMARY_DOMAIN}/privkey.pem"
+                NEEDS_CERT=0
+                ISSUER=""
+                if [ ! -f "$CERT_PATH" ] || [ ! -f "$KEY_PATH" ]; then
+                  NEEDS_CERT=1
+                elif command -v openssl >/dev/null 2>&1; then
+                  ISSUER="$(openssl x509 -in "$CERT_PATH" -noout -issuer 2>/dev/null || true)"
+                  if echo "$ISSUER" | grep -qi "$PRIMARY_DOMAIN"; then
+                    echo "[5/6] Existing certificate appears self-signed (issuer=$ISSUER)"
+                    NEEDS_CERT=1
+                  fi
+                fi
 
-                if [ -f "$CERT_PATH" ] && [ -f "$KEY_PATH" ]; then
-                  echo "[5/6] Existing certificate found at $CERT_PATH, skipping issuance."
-                else
-                  echo "[5/6] No certificate found for $PRIMARY_DOMAIN. Issuing new certificate for: $CLEAN_DOMAINS"
+                if [ "$NEEDS_CERT" -eq 1 ]; then
+                  echo "[5/6] Issuing certificates for: $CLEAN_DOMAINS"
                   docker compose -f "$COMPOSE_FILE" up -d app nginx
-
                   DOMAIN_FLAGS=""
                   for domain in $CLEAN_DOMAINS; do
                     [ -z "$domain" ] && continue
                     DOMAIN_FLAGS="$DOMAIN_FLAGS -d $domain"
                   done
-
                   # shellcheck disable=SC2086
-                  CERTBOT_ARGS="certbot certonly --non-interactive --webroot -w /var/www/certbot --email \"$CERT_EMAIL\" --agree-tos --no-eff-email $DOMAIN_FLAGS"
+                  CERTBOT_ARGS="certbot certonly --webroot -w /var/www/certbot --email \"$CERT_EMAIL\" --agree-tos --no-eff-email $DOMAIN_FLAGS"
                   docker compose -f "$COMPOSE_FILE" run --rm certbot -c "$CERTBOT_ARGS"
                   docker compose -f "$COMPOSE_FILE" exec nginx nginx -s reload || true
+                else
+                  if [ -z "$ISSUER" ] && command -v openssl >/dev/null 2>&1; then
+                    ISSUER="$(openssl x509 -in "$CERT_PATH" -noout -issuer 2>/dev/null || true)"
+                  fi
+                  if [ -n "$ISSUER" ]; then
+                    echo "[5/6] Valid certificate found at $CERT_PATH (issuer: $ISSUER)"
+                  else
+                    echo "[5/6] Valid certificate found at $CERT_PATH"
+                  fi
                 fi
               else
                 echo "[5/6] CERTBOT_DOMAINS resolved to empty list. Skipping issuance."
