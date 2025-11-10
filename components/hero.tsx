@@ -36,7 +36,7 @@ export function Hero() {
 
   const t = translations[language]
 
-  const demoUrl = "https://apilog.kr:8080"
+  const demoUrl = "https://demo.apilog.kr"
 
   return (
     <section className="pt-32 pb-20 px-4">
