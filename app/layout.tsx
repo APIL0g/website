@@ -35,9 +35,9 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <Script
-          src="http://52.79.131.83:8080/apilog/embed.js"
+          src="https://apilog.kr/apilog/embed.js"
           data-site-id="main"
-          data-ingest-url="http://52.79.131.83:8080/api/ingest/events"
+          data-ingest-url="https://apilog.kr/api/ingest/events"
           strategy="beforeInteractive"
         />
       </head>
