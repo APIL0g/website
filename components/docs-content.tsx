@@ -35,6 +35,55 @@ export function DocsContent() {
       configDesc: "Configure Apilog to match your needs",
       envVars: "Environment Variables",
       envVarsDescription: "These values map directly to the .env template above. Update them before running docker-compose.",
+      envOptionalSummary: "Optional settings",
+      envOptionalDescription: "Toggle to view the optional CORS/LLM/AI cache configuration.",
+      optionalDetailItems: [
+        {
+          key: "CORS_ALLOW_ORIGIN",
+          title: "CORS_ALLOW_ORIGIN",
+          description: "Comma-separated origins that are allowed to call apilog-api.",
+        },
+        {
+          key: "LLM_PROVIDER",
+          title: "LLM_PROVIDER",
+          description: "LLM provider identifier. Keep 'ollama' unless you swap providers.",
+        },
+        {
+          key: "LLM_ENDPOINT",
+          title: "LLM_ENDPOINT",
+          description: "Internal URL apilog-api uses to reach the LLM service.",
+        },
+        {
+          key: "LLM_MODEL",
+          title: "LLM_MODEL",
+          description: "Exact Ollama model tag used for generating insights.",
+        },
+        {
+          key: "LLM_TEMPERATURE",
+          title: "LLM_TEMPERATURE",
+          description: "Controls randomness of AI responses (lower values are more deterministic).",
+        },
+        {
+          key: "LLM_TIMEOUT_S",
+          title: "LLM_TIMEOUT_S",
+          description: "Seconds to wait before timing out LLM requests.",
+        },
+        {
+          key: "AI_INSIGHTS_CACHE_TTL",
+          title: "AI_INSIGHTS_CACHE_TTL",
+          description: "Cache duration for AI insights in seconds.",
+        },
+        {
+          key: "AI_INSIGHTS_EXPLAIN_CACHE_TTL",
+          title: "AI_INSIGHTS_EXPLAIN_CACHE_TTL",
+          description: "Cache TTL for AI explanations (0 disables caching).",
+        },
+        {
+          key: "AI_REPORT_FETCH_BASE",
+          title: "AI_REPORT_FETCH_BASE",
+          description: "Internal API endpoint used by the AI widgets.",
+        },
+      ],
       databaseUrl: "Database connection string",
       port: "Server port (default: 3000)",
       secretKey: "Secret key for session encryption",
@@ -107,38 +156,69 @@ export function DocsContent() {
       installSetupTitle: "Installation & Setup",
       envCopyDescription: "Copy the example environment file and configure your settings",
       envEditComment: "Edit .env with your configuration:",
-      envSnippet: `# Rename this file to .env and customize the values for your deployment.
+      envSnippet: `# Rename this file to .env and update the values for your environment.
+# 이 파일을 .env 로 이름을 바꾸고, 환경에 맞게 값을 수정하세요.
 
-# InfluxDB bootstrap credentials (used on first launch only)
-INFLUX_USERNAME=username            # Admin username created during setup
-INFLUX_PASSWORD=password            # Strong admin password
-INFLUX_ORG=your_organization        # Logical org name for compatibility APIs
-INFLUX_DATABASE=your-database-name  # Bucket/database that stores analytics events
-INFLUX_TOKEN=replace-with-random-string   # Root token shared with apilog-api
+############################################################
+# Required Settings (필수 설정)
+############################################################
 
-# CORS settings for apilog-api (comma-separated list or *)
-CORS_ALLOW_ORIGIN=*
+# InfluxDB authentication token used by both ingestion and query APIs.
+# InfluxDB 인증 토큰 (수집/조회 API 모두에서 사용) → 운영용 안전한 값으로 교체하세요.
+INFLUX_TOKEN=<your-influxdb-token>
 
-# Internal URL that apilog-api uses to reach InfluxDB
+# InfluxDB database name where APILog writes/reads analytics events.
+# APILog이 데이터를 저장/조회할 InfluxDB 데이터베이스 이름.
+INFLUX_DATABASE=<your-database-name>
+
+# Public base URL of the site you want to snapshot/analyze.
+# 스냅샷·분석 대상 실서비스의 기본 URL (예: https://example.com).
+TARGET_SITE_BASE_URL=<https://your-site.com>
+
+############################################################
+# Optional Settings (선택 설정) — 필요한 경우에만 수정
+############################################################
+
+# InfluxDB endpoint (override only when not using docker-compose defaults)
+# 기본 docker-compose 구성에서 바꾸지 않았다면 그대로 두세요.
 INFLUX_URL=http://influxdb3-core:8181
 
-# LLM (Ollama) configuration for insights feature
-LLM_PROVIDER=ollama                 # Keep 'ollama' unless you swap providers
-LLM_ENDPOINT=http://ollama:11434    # Docker service name so apilog-api can reach Ollama
-LLM_MODEL=llama3:8b                 # Model tag exactly as downloaded in Ollama
-LLM_TEMPERATURE=0.2                 # Lower = more deterministic replies
-LLM_TIMEOUT_S=60                    # Seconds before timing out LLM requests
-AI_INSIGHTS_EXPLAIN_CACHE_TTL=0     # Cache TTL in seconds (0 disables caching)
+# CORS allow list (comma separated or * for all origins)
+# CORS 허용 도메인 (쉼표로 구분하거나 * 를 사용하여 모두 허용)
+CORS_ALLOW_ORIGIN=*
+
+# LLM (Ollama) Settings
+# LLM (Ollama) 설정
+LLM_PROVIDER=ollama
+# Use Docker service name so apilog-api can reach the Ollama container
+# apilog-api에서 Ollama 컨테이너에 연결할 수 있도록 Docker 서비스 이름 사용
+LLM_ENDPOINT=http://ollama:11434
+# Trimmed model tag (no trailing spaces)
+# Ollama에서 다운로드한 모델 태그 (뒤에 공백 없음)
+LLM_MODEL=llama3:8b
+LLM_TEMPERATURE=0.2
+LLM_TIMEOUT_S=60
+
+# AI caching / internal API endpoints
+# AI 캐싱 / 내부 API 엔드포인트
+AI_INSIGHTS_CACHE_TTL=60
+AI_INSIGHTS_EXPLAIN_CACHE_TTL=0
+AI_REPORT_FETCH_BASE=http://apilog-api:8000
+
+# Optional settings reference (선택 설정 안내)
+# - LLM_*: Adjust only for advanced LLM tuning / LLM 동작을 세밀히 조정할 때만 변경
+# - AI_INSIGHTS_* / AI_REPORT_FETCH_BASE: Modify when 캐시 정책이나 내부 API 주소를 바꿔야 할 때만 변경하세요.
 `,
       dockerDescription:
         "Start Apilog using Docker Compose. This will set up the database and application automatically.",
       dockerCheckServices: "Check if services are running:",
       dockerViewLogs: "View logs:",
       dockerNote:
-        "Apilog will be available at http://localhost:8080 by default. Access the dashboard to get your API key.",
+        "Apilog is available at http://localhost:10000 by default to grab your API key; only open host port 10000 to your own IP when exposing it externally.",
       composeReferenceSummary: "Need the docker-compose reference?",
       composeReferenceDescription:
-        "Expand to review how each service is wired. Comment out the Ollama port mapping if you do not need external access, and un-comment the GPU block when you want to pass through a GPU.",
+        "Expand to review how each service is wired. Un-comment the gpus:all block when you want to pass through a GPU.",
+      envOptionalNote: "Expand the optional settings below to view the CORS/LLM/AI cache configuration.",
       dockerComposeReference: `version: "3.9"
 
 services:
@@ -223,7 +303,7 @@ services:
       dockerfile: infra/nginx/Dockerfile
 
     ports:
-      - "8080:80"    # Change this if 8080 is already in use
+      - "10000:80"    # Change this if 10000 is already in use
 
     depends_on:
       - apilog-api
@@ -303,6 +383,55 @@ volumes:
       configDesc: "필요에 맞게 Apilog를 설정하세요",
       envVars: "환경 변수",
       envVarsDescription: ".env 템플릿과 1:1로 대응되는 값입니다. docker-compose를 실행하기 전에 환경에 맞게 수정하세요.",
+      envOptionalSummary: "선택 설정 보기",
+      envOptionalDescription: "아래 섹션을 펼치면 CORS/LLM/AI 캐시 선택 구성을 확인할 수 있습니다.",
+      optionalDetailItems: [
+        {
+          key: "CORS_ALLOW_ORIGIN",
+          title: "CORS_ALLOW_ORIGIN",
+          description: "apilog-api 호출을 허용할 출처 목록입니다. 쉼표로 구분해 주세요.",
+        },
+        {
+          key: "LLM_PROVIDER",
+          title: "LLM_PROVIDER",
+          description: "LLM 제공자 식별자입니다. 교체하지 않으면 'ollama'를 사용하세요.",
+        },
+        {
+          key: "LLM_ENDPOINT",
+          title: "LLM_ENDPOINT",
+          description: "apilog-api가 LLM과 통신할 내부 URL입니다.",
+        },
+        {
+          key: "LLM_MODEL",
+          title: "LLM_MODEL",
+          description: "인사이트 생성을 위한 Ollama 모델 태그입니다.",
+        },
+        {
+          key: "LLM_TEMPERATURE",
+          title: "LLM_TEMPERATURE",
+          description: "AI 응답의 무작위성을 제어합니다. 값이 낮을수록 일관성이 증가합니다.",
+        },
+        {
+          key: "LLM_TIMEOUT_S",
+          title: "LLM_TIMEOUT_S",
+          description: "LLM 요청을 대기할 최대 시간(초)입니다.",
+        },
+        {
+          key: "AI_INSIGHTS_CACHE_TTL",
+          title: "AI_INSIGHTS_CACHE_TTL",
+          description: "AI 인사이트 캐시 지속 시간을 초 단위로 설정합니다.",
+        },
+        {
+          key: "AI_INSIGHTS_EXPLAIN_CACHE_TTL",
+          title: "AI_INSIGHTS_EXPLAIN_CACHE_TTL",
+          description: "AI 설명 캐시 TTL입니다. 0이면 캐시를 끕니다.",
+        },
+        {
+          key: "AI_REPORT_FETCH_BASE",
+          title: "AI_REPORT_FETCH_BASE",
+          description: "AI 위젯에서 사용하는 내부 API 엔드포인트입니다.",
+        },
+      ],
       databaseUrl: "데이터베이스 연결 문자열",
       port: "서버 포트 (기본값: 3000)",
       secretKey: "세션 암호화를 위한 비밀 키",
@@ -402,10 +531,12 @@ AI_INSIGHTS_EXPLAIN_CACHE_TTL=0     # 인사이트 캐시 TTL(초). 0이면 비�
       dockerDescription: "Docker Compose로 Apilog를 실행합니다. 데이터베이스와 애플리케이션이 자동으로 준비됩니다.",
       dockerCheckServices: "서비스가 실행 중인지 확인:",
       dockerViewLogs: "로그 보기:",
-      dockerNote: "기본적으로 Apilog는 http://localhost:8080에서 제공됩니다. 대시보드에 접속해 API 키를 받아가세요.",
+      dockerNote:
+        "기본적으로 Apilog는 http://localhost:10000에서 제공됩니다. 외부에서 접속해야 한다면 10000포트를 자신의 IP에만 허용하세요.",
       addScriptDescription: "웹사이트의 HTML에서 </head> 직전에 Apilog 추적 스크립트를 추가하세요:",
       composeReferenceSummary: "docker-compose 참고 보기",
-      composeReferenceDescription: "각 서비스가 어떻게 연결되어 있는지 확인할 수 있습니다. Ollama 포트(11434)를 외부에 노출할 필요가 없다면 ports 항목을 주석 처리하고, GPU가 있으면 deploy.resources 블록의 주석을 해제하세요.",
+      composeReferenceDescription: "각 서비스가 어떻게 연결되어 있는지 확인할 수 있습니다. GPU가 있으면 gpus: all 블록의 주석을 해제하세요.",
+      envOptionalNote: "아래 섹션을 펼치면 CORS/LLM/AI 캐시 선택 설정을 확인할 수 있습니다.",
       replaceApiKeyNotice: "당신의 퍼블릭 IP 혹은 도메인 이름으로 '<Public IP or Domain>'를 교체하세요.",
       installSuccessTitle: "성공!",
       installSuccessDescription: "이제 분석 데이터가 수집되고 있습니다. Apilog 대시보드에서 실시간 데이터를 확인하세요.",
@@ -414,354 +545,520 @@ AI_INSIGHTS_EXPLAIN_CACHE_TTL=0     # 인사이트 캐시 TTL(초). 0이면 비�
     },
   }
   const envSnippets = {
-    en: `# Rename this file to .env and edit each variable for your deployment.
+    en: `# Rename this file to .env and customize the values for your deployment.
 
-# InfluxDB bootstrap credentials (used only on first launch)
-INFLUX_USERNAME=username            # Admin username created during init
-INFLUX_PASSWORD=password            # Strong password for the admin user
-INFLUX_ORG=your_organization        # Logical org name for compatibility APIs
-INFLUX_DATABASE=your-database-name  # Bucket/database that stores analytics events
-INFLUX_ADMIN_TOKEN=replace-with-random-string   # Root token shared with apilog-api
+############################################################
+# Required Settings
+############################################################
 
-# CORS settings for apilog-api (comma separated list or *)
-CORS_ALLOW_ORIGIN=*
+# InfluxDB authentication token used by both ingestion and query APIs.
+INFLUX_TOKEN=<your-influxdb-token>
 
-# Internal URL that apilog-api uses to reach InfluxDB
+# InfluxDB database name where APILog writes/reads analytics events.
+INFLUX_DATABASE=<your-database-name>
+
+# Public base URL of the site you want to snapshot/analyze.
+TARGET_SITE_BASE_URL=<https://your-site.com>
+
+############################################################
+# Optional Settings — edit only when needed
+############################################################
+
+# InfluxDB endpoint (override only when not using docker-compose defaults)
 INFLUX_URL=http://influxdb3-core:8181
 
-# LLM (Ollama) configuration for insights feature
-LLM_PROVIDER=ollama                 # Keep 'ollama' unless you swap providers
-LLM_ENDPOINT=http://ollama:11434    # Docker service name so the API can reach Ollama
-LLM_MODEL=llama3:8b                 # Model tag exactly as pulled in Ollama
-LLM_TEMPERATURE=0.2                 # Lower = more deterministic replies
-LLM_TIMEOUT_S=60                    # Seconds to wait before aborting a request
-AI_INSIGHTS_EXPLAIN_CACHE_TTL=0     # Cache TTL in seconds (0 disables caching)
+# CORS allow list (comma separated or * for all origins)
+CORS_ALLOW_ORIGIN=*
+
+# LLM (Ollama) Settings
+LLM_PROVIDER=ollama
+LLM_ENDPOINT=http://ollama:11434
+LLM_MODEL=llama3:8b
+LLM_TEMPERATURE=0.2
+LLM_TIMEOUT_S=60
+
+# AI caching / internal API endpoints
+AI_INSIGHTS_CACHE_TTL=60
+AI_INSIGHTS_EXPLAIN_CACHE_TTL=0
+AI_REPORT_FETCH_BASE=http://apilog-api:8000
 `,
-    kr: `# 이 파일을 .env로 이름을 바꾸고 환경에 맞게 각 변수를 수정하세요.
+    kr: `# 이 파일을 .env로 이름을 바꾸고, 환경에 맞게 값을 수정하세요.
 
-# InfluxDB 초기 부트스트랩 계정 (최초 실행 시에만 사용)
-INFLUX_USERNAME=username            # 생성할 관리자 계정 사용자 이름
-INFLUX_PASSWORD=password            # 관리자 계정 비밀번호 (충분히 복잡하게 설정)
-INFLUX_ORG=your_organization        # 호환 API 용 논리적 조직 이름
-INFLUX_DATABASE=your-database-name  # 분석 이벤트가 저장될 데이터베이스/버킷 이름
-INFLUX_ADMIN_TOKEN=replace-with-random-string   # apilog-api와 공유할 루트 토큰
+############################################################
+# 필수 설정
+############################################################
 
-# apilog-api 에서 허용할 CORS 도메인 (쉼표 구분 또는 *)
-CORS_ALLOW_ORIGIN=*
+# 수집·조회 API 모두에서 사용하는 InfluxDB 인증 토큰입니다.
+INFLUX_TOKEN=<your-influxdb-token>
 
-# apilog-api가 InfluxDB에 접속할 내부 URL
+# Apilog이 데이터를 기록·조회할 데이터베이스 이름입니다.
+INFLUX_DATABASE=<your-database-name>
+
+# 스냅샷·분석 대상으로 삼을 사이트의 기본 URL입니다.
+TARGET_SITE_BASE_URL=<https://your-site.com>
+
+############################################################
+# 선택 설정 (필요한 경우에만 수정)
+############################################################
+
+# 기본 docker-compose 구성에서 벗어난다면 커스텀 InfluxDB 엔드포인트를 지정하세요.
 INFLUX_URL=http://influxdb3-core:8181
 
-# LLM (Ollama) 설정 - 인사이트 기능에 사용
-LLM_PROVIDER=ollama                 # 다른_PROVIDER를 쓰지 않는다면 그대로 유지
-LLM_ENDPOINT=http://ollama:11434    # Docker 서비스 이름(ollama)으로 접근
-LLM_MODEL=llama3:8b                 # Ollama에 설치한 모델 태그
-LLM_TEMPERATURE=0.2                 # 낮을수록 답변이 일정해짐
-LLM_TIMEOUT_S=60                    # 요청 타임아웃(초)
-AI_INSIGHTS_EXPLAIN_CACHE_TTL=0     # 인사이트 캐시 TTL(초). 0이면 비활성화
+# apilog-api 호출을 허용할 출처 (콤마 구분 또는 * )
+CORS_ALLOW_ORIGIN=*
+
+# LLM (Ollama) 설정
+LLM_PROVIDER=ollama
+# apilog-api가 Ollama 컨테이너에 연결할 수 있도록 Docker 서비스 이름을 사용하세요.
+LLM_ENDPOINT=http://ollama:11434
+# Ollama에서 설치한 모델 태그를 정확히 적으세요.
+LLM_MODEL=llama3:8b
+LLM_TEMPERATURE=0.2
+LLM_TIMEOUT_S=60
+
+# AI 캐싱 / 내부 API 엔드포인트
+AI_INSIGHTS_CACHE_TTL=60
+AI_INSIGHTS_EXPLAIN_CACHE_TTL=0
+AI_REPORT_FETCH_BASE=http://apilog-api:8000
 `,
   }
   const envSnippet = envSnippets[language as "en" | "kr"] ?? envSnippets.en
+  const optionalEnvSnippets = {
+    en: `# Optional settings (CORS, LLM, AI cache) — configure only if needed.
+CORS_ALLOW_ORIGIN=*
+LLM_PROVIDER=ollama
+LLM_ENDPOINT=http://ollama:11434
+LLM_MODEL=llama3:8b
+LLM_TEMPERATURE=0.2
+LLM_TIMEOUT_S=60
+AI_INSIGHTS_CACHE_TTL=60
+AI_INSIGHTS_EXPLAIN_CACHE_TTL=0
+AI_REPORT_FETCH_BASE=http://apilog-api:8000
+`,
+    kr: `# 선택 설정 (필요한 경우)
+CORS_ALLOW_ORIGIN=*
+LLM_PROVIDER=ollama
+LLM_ENDPOINT=http://ollama:11434
+LLM_MODEL=llama3:8b
+LLM_TEMPERATURE=0.2
+LLM_TIMEOUT_S=60
+AI_INSIGHTS_CACHE_TTL=60
+AI_INSIGHTS_EXPLAIN_CACHE_TTL=0
+AI_REPORT_FETCH_BASE=http://apilog-api:8000
+`,
+  }
+  const optionalEnvSnippet = optionalEnvSnippets[language as "en" | "kr"] ?? optionalEnvSnippets.en
   const dockerComposeReferences = {
-    en: `version: "3.9"
+    en: `# Docker Compose for APILog Production Environment
+# APILog 운영 배포용 Docker Compose 구성 (Prod)
+############################################################
 
 services:
+  ############################################################
+  # 1) InfluxDB 3 Core
+  #    Time-series DB (HTTP API on port 8181, local-only access)
+  #    시간 기반 데이터 저장소 (8181 포트, 내부 전용)
+  ############################################################
   influxdb3-core:
-    image: quay.io/influxdb/influxdb3:latest
+    image: influxdb:3-core
     container_name: influxdb3-core
 
-    # Run as root so mounted folders stay writable (tighten for hardened deployments)
-    user: "0:0"
-
     environment:
-      # Bootstrap the database the first time the container runs
-      INFLUXDB_INIT_MODE: setup
-      INFLUXDB_INIT_USERNAME: \${INFLUX_USERNAME}
-      INFLUXDB_INIT_PASSWORD: \${INFLUX_PASSWORD}
-      INFLUXDB_INIT_ORG: \${INFLUX_ORG}
-      INFLUXDB_INIT_DATABASE: \${INFLUX_DATABASE}
-      INFLUXDB_INIT_RETENTION: autogen
-      INFLUXDB_INIT_ADMIN_TOKEN: \${INFLUX_TOKEN}
+      # Storage type: local filesystem
+      # 스토리지 타입: 로컬 파일 시스템
+      INFLUXDB3_OBJECT_STORE: file
+
+      # Data directory (persisted to volume)
+      # 데이터 디렉터리 (볼륨에 영속 저장)
+      INFLUXDB3_DB_DIR: /var/lib/influxdb3
+
+      # Node ID (required argument)
+      # 노드 ID (필수 인자)
+      INFLUXDB3_NODE_ID: influx-node0
+
+      # Disable auth for self-contained deployments
+      # 단일 배포 구성에서는 인증 비활성화
+      INFLUXDB3_START_WITHOUT_AUTH: "true"
 
     command:
+      # Entry command with explicit parameters / 필수 인자 명시
+      - influxdb3
       - serve
-      - --host-id=influx-node0
-      - --object-store=file
-      - --data-dir=/var/lib/influxdb3/data
-      - --plugin-dir=/var/lib/influxdb3/plugins
+      - --log-filter
+      - info
+      - --object-store
+      - file
+      - --plugin-dir
+      - /plugins
+      - --node-id
+      - influx-node0
 
-    ports:
-      - "8181:8181"   # Expose the Flight/gRPC API locally; restrict via firewall in production
+    # Expose port 8181 only inside the compose network (no host binding)
+    # compose 네트워크 내부에서만 8181 포트를 노출 (호스트 포트 사용 안 함)
+    expose:
+      - "8181"
 
     volumes:
-      - influx-data:/var/lib/influxdb3/data
-      - influx-plugins:/var/lib/influxdb3/plugins
+      # Database / catalog / parquet storage
+      # DB / 카탈로그 / Parquet 데이터 저장
+      - influx-data:/var/lib/influxdb3
+      # Home metadata for influxdb3 user
+      # influxdb3 사용자 홈 메타데이터
+      - influx-meta:/home/influxdb3/.influxdb3
+      # Plugins directory (rollups, custom scripts)
+      # 플러그인/커스텀 스크립트 디렉터리
+      - influx-plugins:/plugins
 
     restart: unless-stopped
 
+
+  ############################################################
+  # 2) apilog-api (FastAPI backend)
+  #    Event ingestion & query API
+  #    이벤트 수집/조회 API
+  ############################################################
   apilog-api:
     container_name: apilog-api
     build: ./back/app
 
     environment:
-      INFLUX_URL: http://influxdb3-core:8181
+      # Backend <-> InfluxDB connection info
+      # API와 InfluxDB 연결 정보
+      INFLUX_URL: \${INFLUX_URL}
       INFLUX_TOKEN: \${INFLUX_TOKEN}
-      INFLUX_ORG: \${INFLUX_ORG}
-      INFLUX_BUCKET: \${INFLUX_DATABASE}
+      INFLUX_DATABASE: \${INFLUX_DATABASE}
+
+      # Web API behavior (CORS & LLM)
+      # 웹 API 동작 (CORS, LLM)
       CORS_ALLOW_ORIGIN: \${CORS_ALLOW_ORIGIN}
       LLM_PROVIDER: \${LLM_PROVIDER}
       LLM_ENDPOINT: \${LLM_ENDPOINT}
       LLM_MODEL: \${LLM_MODEL}
-      LLM_TEMPERATURE: \${LLM_TEMPERATURE}
-      LLM_TIMEOUT_S: \${LLM_TIMEOUT_S}
+
+      # AI widgets' knobs (cache/internal API/snapshot target)
+      # AI 위젯 설정 (캐시/내부 API/스냅샷 대상)
+      AI_INSIGHTS_CACHE_TTL: \${AI_INSIGHTS_CACHE_TTL}
+      AI_INSIGHTS_EXPLAIN_CACHE_TTL: \${AI_INSIGHTS_EXPLAIN_CACHE_TTL}
+      AI_REPORT_FETCH_BASE: \${AI_REPORT_FETCH_BASE}
+      TARGET_SITE_BASE_URL: \${TARGET_SITE_BASE_URL}
 
     depends_on:
       - influxdb3-core
       - ollama
 
+    # Expose backend port internally (reverse proxy consumes it)
+    # 내부에서만 8000 포트를 노출 (Nginx가 프록시)
     expose:
       - "8000"
-    # Uncomment if the API must be reachable directly from your host network
-    # ports:
-    #   - "8000:8000"
 
     volumes:
+      # Persisted snapshot images mounted at /api/snapshots
+      # 히트맵 스냅샷 저장용 볼륨
       - snapshots:/snapshots
 
     restart: unless-stopped
 
+
+  ############################################################
+  # 3) apilog-nginx (Frontend + Reverse Proxy)
+  #    Serves static dashboard + proxies API
+  #    프런트 대시보드 및 API 리버스 프록시
+  ############################################################
   apilog-nginx:
     container_name: apilog-nginx
     build:
       context: .
       dockerfile: infra/nginx/Dockerfile
 
+    # Map host 10000 -> container 80 (adjust if port conflict occurs)
+    # 호스트 10000 포트를 컨테이너 80에 매핑 (충돌 시 수정)
     ports:
-      - "8080:80"    # Change the host port if 8080 is already taken
+      - "10000:80"
 
     depends_on:
       - apilog-api
 
     restart: unless-stopped
 
+
+  ############################################################
+  # 4) ollama (Local LLM Server)
+  #    Provides local LLM endpoint for AI widgets
+  #    AI 위젯에 필요한 로컬 LLM 서버
+  ############################################################
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
+
     environment:
-      - OLLAMA_HOST=0.0.0.0
-      - OLLAMA_KEEP_ALIVE=1h
-    ports:
-      - "11434:11434"   # Comment out if you only call Ollama from inside the compose network
+      # Network binding for the Ollama service
+      # LLM 서비스 바인딩
+      OLLAMA_HOST: 0.0.0.0
+      OLLAMA_KEEP_ALIVE: 1h
+      # If not provided via .env it falls back to llama3:8b
+      # .env에 없으면 기본값(laama3:8b) 사용
+      LLM_MODEL: \${LLM_MODEL:-llama3:8b}
+
+    # Only expose internally; FastAPI calls it via service name.
+    # 내부에서만 노출, FastAPI가 서비스 이름으로 접근
+    expose:
+      - "11434"
+
     volumes:
+      # Cache downloaded models
+      # 다운로드 모델 캐시
       - ollama-data:/root/.ollama
+
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo "Bootstrapping Ollama model: $LLM_MODEL"
+        ollama serve &
+        PID=$!
+        sleep 10
+        if [ -n "$LLM_MODEL" ]; then
+          ollama pull "$LLM_MODEL" || echo "Warning: failed to pull $LLM_MODEL"
+        fi
+        wait $PID
+
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:11434/api/tags"]
       interval: 10s
       timeout: 5s
       retries: 20
-    restart: unless-stopped
-    # Enable this when a GPU is available and nvidia-container-toolkit is configured
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - capabilities: ["gpu"]
 
-# Persistent named volumes
+    restart: unless-stopped
+
+    # gpus: all
+
+
+##############################################################
+# Named Volumes (Persistent storage)
+# 영속 데이터를 위한 볼륨 정의
+##############################################################
 volumes:
   influx-data:
+  influx-meta:
   influx-plugins:
   snapshots:
-  ollama-data:`,
-    kr: `version: "3.9"
+  ollama-data:
+`,
+    kr: `# Docker Compose for APILog Production Environment
+# APILog 운영 배포용 Docker Compose 구성 (Prod)
+############################################################
 
 services:
+  ############################################################
+  # 1) InfluxDB 3 Core
+  #    Time-series DB (HTTP API on port 8181, local-only access)
+  #    시간 기반 데이터 저장소 (8181 포트, 내부 전용)
+  ############################################################
   influxdb3-core:
-    image: quay.io/influxdb/influxdb3:latest
+    image: influxdb:3-core
     container_name: influxdb3-core
 
-    # 루트 권한으로 실행해 마운트 경로 쓰기 가능 (배포 환경에 맞춰 권한 조정)
-    user: "0:0"
-
     environment:
-      # 컨테이너 최초 실행 시 한 번만 데이터베이스를 초기화
-      INFLUXDB_INIT_MODE: setup
-      INFLUXDB_INIT_USERNAME: \${INFLUX_USERNAME}
-      INFLUXDB_INIT_PASSWORD: \${INFLUX_PASSWORD}
-      INFLUXDB_INIT_ORG: \${INFLUX_ORG}
-      INFLUXDB_INIT_DATABASE: \${INFLUX_DATABASE}
-      INFLUXDB_INIT_RETENTION: autogen
-      INFLUXDB_INIT_ADMIN_TOKEN: \${INFLUX_TOKEN}
+      # Storage type: local filesystem
+      # 스토리지 타입: 로컬 파일 시스템
+      INFLUXDB3_OBJECT_STORE: file
+
+      # Data directory (persisted to volume)
+      # 데이터 디렉터리 (볼륨에 영속 저장)
+      INFLUXDB3_DB_DIR: /var/lib/influxdb3
+
+      # Node ID (required argument)
+      # 노드 ID (필수 인자)
+      INFLUXDB3_NODE_ID: influx-node0
+
+      # Disable auth for self-contained deployments
+      # 단일 배포 구성에서는 인증 비활성화
+      INFLUXDB3_START_WITHOUT_AUTH: "true"
 
     command:
+      # Entry command with explicit parameters / 필수 인자 명시
+      - influxdb3
       - serve
-      - --host-id=influx-node0
-      - --object-store=file
-      - --data-dir=/var/lib/influxdb3/data
-      - --plugin-dir=/var/lib/influxdb3/plugins
+      - --log-filter
+      - info
+      - --object-store
+      - file
+      - --plugin-dir
+      - /plugins
+      - --node-id
+      - influx-node0
 
-    ports:
-      - "8181:8181"   # Flight/gRPC API를 로컬에만 노출하고 운영에서는 방화벽/보안그룹으로 제한
+    # Expose port 8181 only inside the compose network (no host binding)
+    # compose 네트워크 내부에서만 8181 포트를 노출 (호스트 포트 사용 안 함)
+    expose:
+      - "8181"
 
     volumes:
-      - influx-data:/var/lib/influxdb3/data
-      - influx-plugins:/var/lib/influxdb3/plugins
+      # Database / catalog / parquet storage
+      # DB / 카탈로그 / Parquet 데이터 저장
+      - influx-data:/var/lib/influxdb3
+      # Home metadata for influxdb3 user
+      # influxdb3 사용자 홈 메타데이터
+      - influx-meta:/home/influxdb3/.influxdb3
+      # Plugins directory (rollups, custom scripts)
+      # 플러그인/커스텀 스크립트 디렉터리
+      - influx-plugins:/plugins
 
     restart: unless-stopped
 
+
+  ############################################################
+  # 2) apilog-api (FastAPI backend)
+  #    Event ingestion & query API
+  #    이벤트 수집/조회 API
+  ############################################################
   apilog-api:
     container_name: apilog-api
     build: ./back/app
 
     environment:
-      INFLUX_URL: http://influxdb3-core:8181
+      # Backend <-> InfluxDB connection info
+      # API와 InfluxDB 연결 정보
+      INFLUX_URL: \${INFLUX_URL}
       INFLUX_TOKEN: \${INFLUX_TOKEN}
-      INFLUX_ORG: \${INFLUX_ORG}
-      INFLUX_BUCKET: \${INFLUX_DATABASE}
+      INFLUX_DATABASE: \${INFLUX_DATABASE}
+
+      # Web API behavior (CORS & LLM)
+      # 웹 API 동작 (CORS, LLM)
       CORS_ALLOW_ORIGIN: \${CORS_ALLOW_ORIGIN}
       LLM_PROVIDER: \${LLM_PROVIDER}
       LLM_ENDPOINT: \${LLM_ENDPOINT}
       LLM_MODEL: \${LLM_MODEL}
-      LLM_TEMPERATURE: \${LLM_TEMPERATURE}
-      LLM_TIMEOUT_S: \${LLM_TIMEOUT_S}
+
+      # AI widgets' knobs (cache/internal API/snapshot target)
+      # AI 위젯 설정 (캐시/내부 API/스냅샷 대상)
+      AI_INSIGHTS_CACHE_TTL: \${AI_INSIGHTS_CACHE_TTL}
+      AI_INSIGHTS_EXPLAIN_CACHE_TTL: \${AI_INSIGHTS_EXPLAIN_CACHE_TTL}
+      AI_REPORT_FETCH_BASE: \${AI_REPORT_FETCH_BASE}
+      TARGET_SITE_BASE_URL: \${TARGET_SITE_BASE_URL}
 
     depends_on:
       - influxdb3-core
       - ollama
 
+    # Expose backend port internally (reverse proxy consumes it)
+    # 내부에서만 8000 포트를 노출 (Nginx가 프록시)
     expose:
       - "8000"
-    # 호스트 네트워크에서 직접 API를 호출해야 한다면 주석을 해제하세요
-    # ports:
-    #   - "8000:8000"
 
     volumes:
+      # Persisted snapshot images mounted at /api/snapshots
+      # 히트맵 스냅샷 저장용 볼륨
       - snapshots:/snapshots
 
     restart: unless-stopped
 
+
+  ############################################################
+  # 3) apilog-nginx (Frontend + Reverse Proxy)
+  #    Serves static dashboard + proxies API
+  #    프런트 대시보드 및 API 리버스 프록시
+  ############################################################
   apilog-nginx:
     container_name: apilog-nginx
     build:
       context: .
       dockerfile: infra/nginx/Dockerfile
 
+    # Map host 10000 -> container 80 (adjust if port conflict occurs)
+    # 호스트 10000 포트를 컨테이너 80에 매핑 (충돌 시 수정)
     ports:
-      - "8080:80"    # 8080을 이미 쓰고 있다면 원하는 호스트 포트로 변경
+      - "10000:80"
 
     depends_on:
       - apilog-api
 
     restart: unless-stopped
 
+
+  ############################################################
+  # 4) ollama (Local LLM Server)
+  #    Provides local LLM endpoint for AI widgets
+  #    AI 위젯에 필요한 로컬 LLM 서버
+  ############################################################
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
+
     environment:
-      - OLLAMA_HOST=0.0.0.0
-      - OLLAMA_KEEP_ALIVE=1h
-    ports:
-      - "11434:11434"   # Compose 네트워크 내부에서만 호출하면 이 포트 매핑을 주석 처리
+      # Network binding for the Ollama service
+      # LLM 서비스 바인딩
+      OLLAMA_HOST: 0.0.0.0
+      OLLAMA_KEEP_ALIVE: 1h
+      # If not provided via .env it falls back to llama3:8b
+      # .env에 없으면 기본값(laama3:8b) 사용
+      LLM_MODEL: \${LLM_MODEL:-llama3:8b}
+
+    # Only expose internally; FastAPI calls it via service name.
+    # 내부에서만 노출, FastAPI가 서비스 이름으로 접근
+    expose:
+      - "11434"
+
     volumes:
+      # Cache downloaded models
+      # 다운로드 모델 캐시
       - ollama-data:/root/.ollama
+
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo "Bootstrapping Ollama model: $LLM_MODEL"
+        ollama serve &
+        PID=$!
+        sleep 10
+        if [ -n "$LLM_MODEL" ]; then
+          ollama pull "$LLM_MODEL" || echo "Warning: failed to pull $LLM_MODEL"
+        fi
+        wait $PID
+
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:11434/api/tags"]
       interval: 10s
       timeout: 5s
       retries: 20
-    restart: unless-stopped
-    # GPU와 nvidia-container-toolkit이 준비됐다면 아래 주석을 해제해 사용
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - capabilities: ["gpu"]
 
-# 지속적으로 보관할 데이터를 위한 볼륨 정의
+    restart: unless-stopped
+
+    # gpus: all
+
+
+##############################################################
+# Named Volumes (Persistent storage)
+# 영속 데이터를 위한 볼륨 정의
+##############################################################
 volumes:
   influx-data:
+  influx-meta:
   influx-plugins:
   snapshots:
-  ollama-data:`,
+  ollama-data:
+`,
   }
   const dockerComposeReference = dockerComposeReferences[language as "en" | "kr"] ?? dockerComposeReferences.en
-  const configVariables: Record<
-    "en" | "kr",
-    Array<{
-      key: string
-      description: string
-      example: string
-    }>
-  > = {
+  const configVariables: Record<"en" | "kr", Array<{ key: string; description: string; example?: string }>> = {
     en: [
-      { key: "INFLUX_USERNAME", description: "Admin username created during the initial InfluxDB setup.", example: "apilog-admin" },
-      { key: "INFLUX_PASSWORD", description: "Strong password for the Influx admin user. Rotate it regularly.", example: "ChangeMeSuperSecure!" },
-      { key: "INFLUX_ORG", description: "Logical organization label required by the Influx API.", example: "apilog" },
-      { key: "INFLUX_DATABASE", description: "Bucket/database that stores every analytics event.", example: "analytics" },
       {
         key: "INFLUX_TOKEN",
         description: "Root API token shared with apilog-api. Generate a long random string and keep it secret.",
         example: "bd0d653a6a2c4a468e6f68958c4f1c9a",
       },
-      {
-        key: "CORS_ALLOW_ORIGIN",
-        description: "Comma-separated list of origins allowed to call apilog-api.",
-        example: "https://apilog.yourcompany.com,https://app.yourcompany.com",
-      },
-      {
-        key: "INFLUX_URL",
-        description: "Internal URL apilog-api uses to reach InfluxDB. Keep the service name when using Docker.",
-        example: "http://influxdb3-core:8181",
-      },
-      { key: "LLM_PROVIDER", description: "LLM provider identifier. Keep \"ollama\" unless you swap providers.", example: "ollama" },
-      {
-        key: "LLM_ENDPOINT",
-        description: "Base URL for the LLM provider inside the docker-compose network.",
-        example: "http://ollama:11434",
-      },
-      { key: "LLM_MODEL", description: "Exact Ollama model tag used for insights.", example: "llama3:8b" },
-      { key: "LLM_TEMPERATURE", description: "Controls randomness of AI insights (lower = more deterministic).", example: "0.2" },
-      { key: "LLM_TIMEOUT_S", description: "Seconds to wait before cancelling an LLM request.", example: "60" },
-      {
-        key: "AI_INSIGHTS_EXPLAIN_CACHE_TTL",
-        description: "Cache duration for AI explanations in seconds. Set to 0 to disable caching.",
-        example: "0",
-      },
+      { key: "INFLUX_DATABASE", description: "Bucket/database that stores every analytics event.", example: "analytics" },
+      { key: "TARGET_SITE_BASE_URL", description: "Public base URL of the site you want to snapshot/analyze.", example: "https://example.com" },
     ],
     kr: [
-      { key: "INFLUX_USERNAME", description: "InfluxDB 최초 설정 시 생성되는 관리자 계정 이름입니다.", example: "apilog-admin" },
-      { key: "INFLUX_PASSWORD", description: "관리자 계정에 사용할 강력한 비밀번호입니다. 주기적으로 변경하세요.", example: "ChangeMeSuperSecure!" },
-      { key: "INFLUX_ORG", description: "Influx API에서 요구하는 논리적 조직 이름입니다.", example: "apilog" },
-      { key: "INFLUX_DATABASE", description: "분석 이벤트가 저장되는 버킷(데이터베이스) 이름입니다.", example: "analytics" },
       {
         key: "INFLUX_TOKEN",
         description: "apilog-api와 공유하는 루트 API 토큰입니다. 충분히 긴 무작위 문자열로 생성하세요.",
         example: "bd0d653a6a2c4a468e6f68958c4f1c9a",
       },
-      {
-        key: "CORS_ALLOW_ORIGIN",
-        description: "apilog-api 호출을 허용할 출처 목록입니다. 콤마로 구분하세요.",
-        example: "https://apilog.yourcompany.com,https://app.yourcompany.com",
-      },
-      {
-        key: "INFLUX_URL",
-        description: "apilog-api가 InfluxDB에 접속할 내부 URL입니다. Docker를 쓰면 서비스 이름을 유지하세요.",
-        example: "http://influxdb3-core:8181",
-      },
-      { key: "LLM_PROVIDER", description: "LLM 제공자 식별자입니다. 교체하지 않는 이상 \"ollama\"로 둡니다.", example: "ollama" },
-      {
-        key: "LLM_ENDPOINT",
-        description: "docker-compose 네트워크 안에서 접근하는 LLM 엔드포인트입니다.",
-        example: "http://ollama:11434",
-      },
-      { key: "LLM_MODEL", description: "인사이트 생성을 위해 사용할 Ollama 모델 태그입니다.", example: "llama3:8b" },
-      { key: "LLM_TEMPERATURE", description: "AI 응답의 무작위성을 제어합니다. 값이 낮을수록 일관성이 높습니다.", example: "0.2" },
-      { key: "LLM_TIMEOUT_S", description: "LLM 요청을 대기할 최대 시간(초)입니다.", example: "60" },
-      {
-        key: "AI_INSIGHTS_EXPLAIN_CACHE_TTL",
-        description: "AI 설명을 캐시할 시간(초)입니다. 0으로 두면 캐시를 비활성화합니다.",
-        example: "0",
-      },
+      { key: "INFLUX_DATABASE", description: "분석 이벤트가 저장되는 버킷(데이터베이스) 이름입니다.", example: "analytics" },
+      { key: "TARGET_SITE_BASE_URL", description: "스냅샷·분석 대상으로 삼을 사이트의 기본 URL입니다.", example: "https://example.com" },
     ],
   }
   const selectedConfigVars = configVariables[language as "en" | "kr"] ?? configVariables.en
@@ -806,7 +1103,7 @@ volumes:
                 <h4 className="font-semibold mb-2">{t.step1}</h4>
                 <CodeBlock
                   code={`git clone https://github.com/APIL0g/APILog.git
-cd apilog`}
+cd APILog`}
                   language="bash"
                 />
               </div>
@@ -881,9 +1178,9 @@ docker compose logs -f`
                 <CodeBlock
                   code={`<!-- Add this to your website's <head> section -->
 <script>
-  src="http://<Public IP or Domain>:8080/apilog/embed.js"
+  src="http://<Public IP or Domain>:10000/apilog/embed.js"
   data-site-id="main"
-  data-ingest-url="http://<Public IP or Domain>:8080/api/ingest/events"
+  data-ingest-url="http://<Public IP or Domain>:10000/api/ingest/events"
   strategy="beforeInteractive"
 </script>`
                         }
@@ -928,6 +1225,25 @@ docker compose logs -f`
               </div>
             ))}
           </div>
+          <p className="text-sm text-muted-foreground mt-4">{t.envOptionalNote}</p>
+          <details className="group mt-4 rounded-2xl border border-border bg-muted/40 p-4">
+            <summary className="cursor-pointer text-sm font-semibold text-muted-foreground">
+              {t.envOptionalSummary}
+            </summary>
+            <p className="text-xs text-muted-foreground mt-2">{t.envOptionalDescription}</p>
+            {t.optionalDetailItems ? (
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                {t.optionalDetailItems.map((item) => (
+                  <li key={item.key}>
+                    <span className="font-semibold">{item.title}</span>: {item.description}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="mt-3">
+              <CodeBlock code={optionalEnvSnippet} language="bash" />
+            </div>
+          </details>
 
           <h3 className="text-xl font-semibold mt-8 mb-4">{t.bestPractices}</h3>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground">
