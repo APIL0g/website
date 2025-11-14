@@ -1095,7 +1095,7 @@ volumes:
 
           <h3 className="text-xl font-semibold mb-4">{t.installSetupTitle}</h3>
           <div className="space-y-6">
-            <div className="flex gap-4">
+            <div id="quick-start-step-1" className="flex gap-4 scroll-mt-24">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold">
                 1
               </div>
@@ -1109,7 +1109,7 @@ cd APILog`}
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div id="quick-start-step-2" className="flex gap-4 scroll-mt-24">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold">
                 2
               </div>
@@ -1124,7 +1124,7 @@ cd APILog`}
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div id="quick-start-step-3" className="flex gap-4 scroll-mt-24">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold">
                 3
               </div>
@@ -1164,7 +1164,7 @@ docker compose logs -f`
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div id="quick-start-step-4" className="flex gap-4 scroll-mt-24">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold">
                 4
               </div>
@@ -1213,8 +1213,10 @@ docker compose logs -f`
             {t.configDesc}
           </p>
 
-          <h3 className="text-xl font-semibold mb-4">{t.envVars}</h3>
-          <p className="text-sm text-muted-foreground mb-4">{t.envVarsDescription}</p>
+          <div id="configuration-env-vars" className="scroll-mt-24">
+            <h3 className="text-xl font-semibold mb-4">{t.envVars}</h3>
+            <p className="text-sm text-muted-foreground mb-4">{t.envVarsDescription}</p>
+          </div>
 
           <div className="space-y-6">
             {selectedConfigVars.map((variable) => (
