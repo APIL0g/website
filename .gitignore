@@ -31,3 +31,7 @@ docker/letsencrypt/*
 !docker/letsencrypt/.gitkeep
 docker/certbot/www/*
 !docker/certbot/www/.gitkeep
+
+# IDE
+.idea/
+workspace.xml
