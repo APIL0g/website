@@ -10,6 +10,8 @@ export function HowItWorks() {
   const translations = {
     en: {
       title: "Get started in minutes",
+      videoTitle: "Watch the full walkthrough",
+      videoDescription: "See the InfluxDB, FastAPI, and dashboard stack spin up in a few minutes.",
       steps: [
         {
           icon: Download,
@@ -30,6 +32,8 @@ export function HowItWorks() {
     },
     kr: {
       title: "몇 분 안에 시작하세요",
+      videoTitle: "영상으로 빠르게 확인",
+      videoDescription: "InfluxDB·FastAPI·대시보드 스택을 몇 분 안에 띄우는 과정을 확인하세요.",
       steps: [
         {
           icon: Download,
@@ -57,6 +61,20 @@ export function HowItWorks() {
       <div className="container mx-auto max-w-6xl">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-balance">{t.title}</h2>
+        </div>
+        <div className="max-w-4xl mx-auto mb-16 space-y-4 text-center">
+          <h3 className="text-2xl font-semibold">{t.videoTitle}</h3>
+          <p className="text-muted-foreground">{t.videoDescription}</p>
+          <div className="aspect-video w-full overflow-hidden rounded-2xl border bg-background shadow-sm">
+            <iframe
+              className="h-full w-full"
+              src="https://www.youtube.com/embed/pPGZDITqLdY"
+              title="APILog walkthrough"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          </div>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
           {t.steps.map((step, index) => (
