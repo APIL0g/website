@@ -215,6 +215,8 @@ AI_REPORT_FETCH_BASE=http://apilog-api:8000
       dockerViewLogs: "View logs:",
       dockerNote:
         "Apilog is available at http://localhost:10000 by default to grab your API key; only open host port 10000 to your own IP when exposing it externally.",
+      dockerNoteCommand:
+        "sudo ufw allow from <your_trusted_ip> to any port 10000 proto tcp",
       composeReferenceSummary: "Need the docker-compose reference?",
       composeReferenceDescription:
         "Expand to review how each service is wired. Un-comment the gpus:all block when you want to pass through a GPU.",
@@ -533,6 +535,8 @@ AI_INSIGHTS_EXPLAIN_CACHE_TTL=0     # 인사이트 캐시 TTL(초). 0이면 비�
       dockerViewLogs: "로그 보기:",
       dockerNote:
         "기본적으로 Apilog는 http://localhost:10000에서 제공됩니다. 외부에서 접속해야 한다면 10000포트를 자신의 IP에만 허용하세요.",
+      dockerNoteCommand:
+        "sudo ufw allow from <허용할_IP> to any port 10000 proto tcp",
       addScriptDescription: "웹사이트의 HTML에서 </head> 직전에 Apilog 추적 스크립트를 추가하세요:",
       composeReferenceSummary: "docker-compose 참고 보기",
       composeReferenceDescription: "각 서비스가 어떻게 연결되어 있는지 확인할 수 있습니다. GPU가 있으면 gpus: all 블록의 주석을 해제하세요.",
@@ -1157,8 +1161,9 @@ docker compose logs -f`
                 <Alert className="mt-4">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>{t.note}</AlertTitle>
-                  <AlertDescription>
-                    {t.dockerNote}
+                  <AlertDescription className="gap-3">
+                    <p>{t.dockerNote}</p>
+                    <CodeBlock code={t.dockerNoteCommand} language="bash" />
                   </AlertDescription>
                 </Alert>
               </div>
