@@ -9,9 +9,11 @@ export default function DocsPage() {
       <Header />
       <div className="pt-20">
         <div className="container mx-auto px-4">
-          <div className="flex gap-8">
+          <div className="flex flex-col gap-8 lg:flex-row">
             <DocsSidebar />
-            <DocsContent />
+            <div className="flex-1 min-w-0">
+              <DocsContent />
+            </div>
           </div>
         </div>
       </div>

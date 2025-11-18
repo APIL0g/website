@@ -88,8 +88,8 @@ export function DocsSidebar() {
   }
 
   return (
-    <aside className="w-64 flex-shrink-0 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="sticky top-24 h-[calc(100vh-6rem)] overflow-y-auto py-6 px-4">
+    <aside className="mb-6 w-full flex-shrink-0 rounded-2xl border border-border/70 bg-background/95 p-4 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:mb-0 lg:w-64 lg:rounded-none lg:border-0 lg:border-r lg:p-0 lg:shadow-none">
+      <div className="lg:sticky lg:top-24 lg:h-[calc(100vh-6rem)] lg:overflow-y-auto lg:px-4 lg:py-6">
         <nav className="space-y-3">
           {sections.map((item) => {
             const hasChildren = Boolean(item.children?.length)

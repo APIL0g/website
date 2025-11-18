@@ -30,8 +30,8 @@ export function CodeBlock({ code, language = "bash" }: CodeBlockProps) {
           {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
         </Button>
       </div>
-      <pre className="bg-secondary p-4 rounded-lg font-mono text-sm overflow-x-auto">
-        <code className={`language-${language}`}>{code}</code>
+      <pre className="bg-secondary p-4 rounded-lg font-mono text-sm overflow-x-auto whitespace-pre-wrap break-words">
+        <code className={`language-${language} break-words`}>{code}</code>
       </pre>
     </div>
   )
